@@ -1,6 +1,16 @@
-Turn any list of PDF links into **clean, structured text you can search, index or feed to an LLM**. Give the Actor public PDF URLs and it downloads each file and returns the full text, the text of every page, document metadata (title, author, dates, producer) and every link found in the document, as JSON records in an Apify dataset.
+**PDF text extractor** and PDF to text API: give it public PDF URLs and it downloads each file and returns the full text, the text of every page, document metadata (title, author, dates, producer) and every link found in the document, as JSON records you can search, index or feed to an LLM.
 
 It is built for **RAG and LLM ingestion pipelines**, research and archiving workflows: no servers to run, no PDF library to maintain, one flat price per PDF, and files that cannot be processed are reported **free of charge**.
+
+## Features
+
+- Extract text from PDF URLs in bulk, hundreds of files per run
+- Convert PDF to plain text or Markdown with page breaks and headings
+- Get PDF metadata (title, author, creation date, producer) as JSON
+- Extract text from each page of a PDF separately, with character counts
+- Extract all links and URLs from a PDF document
+- PDF to text API for RAG, LLM and vector database pipelines
+- Detect scanned PDFs without a text layer (never charged)
 
 ## What can you do with PDF Text & Metadata Extractor?
 
@@ -9,7 +19,6 @@ It is built for **RAG and LLM ingestion pipelines**, research and archiving work
 - **Compliance and archive indexing**: build a full-text index of policy documents, filings and public notices, with creation and modification dates.
 - **Invoice, statement and report pipelines**: extract text from supplier PDFs published on a portal and pass it to a parser or an LLM for field extraction.
 - **Link discovery**: collect every URL referenced inside a set of PDFs (citations, data sources, further reading).
-- **AI agents**: the Actor is available through the Apify MCP server, so an agent can "read this PDF" as a tool call.
 
 ## How it works
 
@@ -23,9 +32,7 @@ Only the text layer of a PDF is extracted. Scanned documents that contain images
 2. Pick an **Output format**: plain text, Markdown (headings guessed from font sizes, page breaks as `---`) or both.
 3. Optionally adjust **Max pages per PDF** and **Max file size** to control cost and memory.
 4. Click **Start**. Each PDF appears in the **Output** tab as soon as it is processed.
-5. Download the dataset as JSON, CSV or Excel, or plug it into the Apify integrations (Google Drive, Airtable, Make, Zapier, LangChain, LlamaIndex).
-
-To run it from code, use the **API** tab or the official [JavaScript](https://docs.apify.com/api/client/js) and [Python](https://docs.apify.com/api/client/python) clients.
+5. Download the dataset as JSON, CSV or Excel, or plug it into an integration (Google Drive, Airtable, Make, Zapier, LangChain, LlamaIndex).
 
 ```json
 {
@@ -98,7 +105,7 @@ URLs that could not be processed are still recorded, so nothing disappears from 
 }
 ```
 
-### Fields
+## Output fields
 
 | Field                                   | Description                                                                                                                         |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -106,13 +113,53 @@ URLs that could not be processed are still recorded, so nothing disappears from 
 | `success`                               | `true` when the PDF was downloaded and parsed. Only these records (with `hasText: true`) are billed.                                |
 | `fileName`, `fileSizeBytes`             | Name from `Content-Disposition` or the URL, and the downloaded size.                                                                |
 | `pageCount` / `pagesExtracted`          | Real number of pages and how many were extracted (limited by **Max pages per PDF**).                                                |
-| `wordCount`, `hasText`, `pagesWithText` | Word count of the extracted text; `hasText` is `false` for scanned, image-only PDFs.                                                |
+| `wordCount`, `hasText`, `pagesWithText` | Words extracted; `hasText` is `false` for scanned, image-only PDFs.                                                                |
 | `metadata`                              | `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `creationDate`, `modDate` (ISO 8601), `pdfVersion`, `encrypted`.   |
-| `text`                                  | Full plain text; paragraphs separated by blank lines, pages by a blank line. Capped at 2 MB (`textTruncated: true` when cut).       |
+| `text`                                  | Full plain text, paragraphs separated by blank lines. Capped at 2 MB (`textTruncated: true` when cut).                             |
 | `markdown`                              | Present for `markdown` and `both` formats: headings guessed from font sizes, pages separated by `---`.                              |
 | `pages[]`                               | `page`, `text` and `charCount` for every extracted page (when **Include per-page text** is on).                                     |
 | `links[]`                               | Unique URLs from link annotations and from the text.                                                                                |
 | `errorType`                             | For failures: `invalid-url`, `not-a-pdf`, `too-large`, `encrypted`, `http-error`, `blocked`, `network`, `timeout` or `parse-error`. |
+
+## Use it from the API, Python, JavaScript or an AI agent
+
+Run the Actor and get the dataset back in one HTTP call:
+
+```bash
+curl -X POST "https://api.apify.com/v2/acts/josh99smith~pdf-text-extractor/run-sync-get-dataset-items?token=<YOUR_API_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"urls": ["https://bitcoin.org/bitcoin.pdf"], "outputFormat": "markdown"}'
+```
+
+Python, with the [apify-client](https://docs.apify.com/api/client/python) package:
+
+```python
+from apify_client import ApifyClient
+
+client = ApifyClient("<YOUR_API_TOKEN>")
+run = client.actor("josh99smith/pdf-text-extractor").call(
+    run_input={"urls": ["https://bitcoin.org/bitcoin.pdf"], "outputFormat": "markdown", "perPage": False}
+)
+for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+    print(item["url"], item.get("wordCount"), item.get("markdown", "")[:200])
+```
+
+JavaScript or TypeScript, with the [apify-client](https://docs.apify.com/api/client/js) package:
+
+```javascript
+import { ApifyClient } from 'apify-client';
+
+const client = new ApifyClient({ token: '<YOUR_API_TOKEN>' });
+const run = await client.actor('josh99smith/pdf-text-extractor').call({
+    urls: ['https://bitcoin.org/bitcoin.pdf'],
+    outputFormat: 'markdown',
+    perPage: false,
+});
+const { items } = await client.dataset(run.defaultDatasetId).listItems();
+console.log(items[0].markdown);
+```
+
+The Actor is also available as a tool through the Apify MCP server, so AI agents can call it directly, and it can be scheduled or connected to Zapier, Make, n8n and Google Sheets in the **Integrations** tab.
 
 ## Pricing: how much does it cost to extract text from a PDF?
 
@@ -121,27 +168,46 @@ You pay a **flat price per successfully processed PDF** (shown next to the Start
 ## Tips
 
 - **Large documents**: a 500-page report and a 1-page flyer cost the same. Lower **Max pages per PDF** if you only need the first pages (for example the abstract and introduction).
-- **Memory**: PDFs are parsed in memory. With the default 25 MB limit and concurrency 5, 512 MB of memory is plenty; raise memory or lower **Max concurrency** for very large files.
+- **Memory**: PDFs are parsed in memory. 512 MB is plenty at the default 25 MB limit and concurrency 5; raise memory or lower **Max concurrency** for very large files.
 - **Smaller records**: turn off **Include per-page text** if you only need the full text, or set **Output format** to `text` only.
 - **Markdown for LLMs**: `markdown` keeps page boundaries (`---`) and likely headings, which helps chunkers keep context together.
-- **Scheduling**: use the **Schedule** tab to re-extract a list of documents weekly and watch `modDate` for changes.
 
 ## FAQ
 
-**Does it handle scanned PDFs?**
+### Does it extract text from scanned PDFs?
+
 Not in this version. Scanned PDFs contain images rather than text, so the record has `hasText: false`, `wordCount: 0` and an empty text; you still get the page count and metadata, and **such files are not charged**. Check `hasText` before sending the text on. OCR support is on the roadmap; let us know in the Issues tab if you need it.
 
-**Why is the layout of tables and multi-column pages imperfect?**
-PDF stores positioned text fragments, not paragraphs. The Actor reconstructs lines and paragraphs from positions and font sizes, which works well for articles, reports and books; complex tables and multi-column layouts may come out in reading order that differs from the visual one.
+### Why is the layout of tables and multi-column pages imperfect?
 
-**Can it open password-protected PDFs?**
+PDF stores positioned text fragments, not paragraphs. The Actor rebuilds lines and paragraphs from positions and font sizes, which works well for articles, reports and books; complex tables and multi-column layouts may come out in a different reading order.
+
+### Can it open password-protected PDFs?
+
 No. Files that need a password to open are reported as `errorType: "encrypted"` and are not charged. PDFs that are merely restricted (owner password, printing disabled) open normally and have `metadata.encrypted: true`.
 
-**Which URLs are supported?**
+### Which PDF URLs are supported?
+
 Any publicly reachable `http(s)` URL that returns a PDF, including redirects and download endpoints such as `https://arxiv.org/pdf/<id>`. URLs behind logins are not supported; they typically return an HTML page and are reported as `not-a-pdf`.
 
-**Is this legal?**
+### What are the limits on file size, pages and text length?
+
+**Max file size** goes up to 200 MB (default 25 MB) and **Max pages per PDF** up to 5,000 (default 500). The `text`, `markdown` and `pages` outputs are each capped at 2 MB, with `textTruncated: true` when a cap is hit. Up to 20 PDFs are processed in parallel and each download times out after at most 300 seconds.
+
+### Is it legal to extract text from PDFs?
+
 The Actor downloads publicly available files exactly like a browser would, at low request rates, and stores nothing but the content of those files. You are responsible for respecting the copyright and terms of use of the documents you process.
+
+## Related Actors by the same developer
+
+- [Website Tech Stack Detector](https://apify.com/josh99smith/tech-stack-detector): find out what a website is built with.
+- [Website Screenshot API](https://apify.com/josh99smith/website-screenshot-api): full-page screenshots and PDFs of any URL.
+- [Google Autocomplete Keyword Scraper](https://apify.com/josh99smith/google-autocomplete-scraper): keyword suggestions from Google search.
+- [App Store & Google Play Reviews Scraper](https://apify.com/josh99smith/app-reviews-scraper): app reviews from both stores.
+- [PageSpeed Insights Core Web Vitals Audit](https://apify.com/josh99smith/pagespeed-insights-audit): Core Web Vitals via Google's API.
+- [Remote Jobs Aggregator API](https://apify.com/josh99smith/remote-jobs-aggregator): remote job listings in one dataset.
+- [Sitemap URL Extractor](https://apify.com/josh99smith/sitemap-url-extractor): all URLs from XML sitemaps.
+- [RSS and Atom Feed to JSON](https://apify.com/josh99smith/rss-feed-to-json): RSS, Atom and JSON feeds as JSON items.
 
 ## Support and feedback
 

@@ -1,6 +1,217 @@
 {
     "actorSpecification": 1,
-    "fields": {},
+    "fields": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "description": "One record per PDF URL. Successful records carry the extracted text, per-page text, metadata and links; failed records carry an error type and message and are free of charge.",
+        "properties": {
+            "url": {
+                "type": "string",
+                "description": "The PDF URL exactly as you supplied it in the input."
+            },
+            "success": {
+                "type": "boolean",
+                "description": "true when the PDF was downloaded and parsed; false for a free failure record."
+            },
+            "fetchedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the PDF was downloaded and processed (ISO 8601, UTC)."
+            },
+            "finalUrl": {
+                "type": "string",
+                "description": "The URL the download ended at after following redirects."
+            },
+            "fileName": {
+                "type": "string",
+                "description": "File name taken from the Content-Disposition header or the last part of the URL."
+            },
+            "fileSizeBytes": {
+                "type": "integer",
+                "description": "Size of the downloaded PDF in bytes."
+            },
+            "pageCount": {
+                "type": "integer",
+                "description": "Real number of pages in the document, regardless of the page limit."
+            },
+            "pagesExtracted": {
+                "type": "integer",
+                "description": "Number of pages whose text was extracted, capped by the Max pages per PDF input."
+            },
+            "wordCount": {
+                "type": "integer",
+                "description": "Number of words in the extracted plain text."
+            },
+            "hasText": {
+                "type": "boolean",
+                "description": "true when at least one page has a text layer; false for scanned, image-only PDFs (not charged)."
+            },
+            "pagesWithText": {
+                "type": "integer",
+                "description": "How many of the extracted pages contain any text."
+            },
+            "metadata": {
+                "type": "object",
+                "description": "Document properties read from the PDF info dictionary and XMP metadata.",
+                "properties": {
+                    "title": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Document title, or null when not set."
+                    },
+                    "author": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Document author, or null when not set."
+                    },
+                    "subject": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Document subject, or null when not set."
+                    },
+                    "keywords": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Keywords string as stored in the PDF, or null."
+                    },
+                    "creator": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Application that created the original document (for example Word or LaTeX), or null."
+                    },
+                    "producer": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Software that produced the PDF file, or null."
+                    },
+                    "creationDate": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "When the PDF was created (ISO 8601), or null."
+                    },
+                    "modDate": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "When the PDF was last modified (ISO 8601), or null."
+                    },
+                    "pdfVersion": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "PDF specification version of the file, for example 1.7."
+                    },
+                    "encrypted": {
+                        "type": "boolean",
+                        "description": "true when the file has owner restrictions (printing or copying disabled) but still opens without a password."
+                    }
+                },
+                "required": [
+                    "title",
+                    "author",
+                    "subject",
+                    "keywords",
+                    "creator",
+                    "producer",
+                    "creationDate",
+                    "modDate",
+                    "pdfVersion",
+                    "encrypted"
+                ]
+            },
+            "links": {
+                "type": "array",
+                "description": "Unique URLs found in link annotations and in the text; empty when Extract links is off.",
+                "items": {
+                    "type": "string",
+                    "description": "A URL referenced inside the PDF."
+                }
+            },
+            "text": {
+                "type": "string",
+                "description": "Full plain text of the document with paragraphs separated by blank lines; present for the text and both output formats."
+            },
+            "markdown": {
+                "type": "string",
+                "description": "Full text as Markdown with headings guessed from font sizes and pages separated by ---; present for the markdown and both output formats."
+            },
+            "textTruncated": {
+                "type": "boolean",
+                "description": "true when the text, markdown or pages output was cut at the 2 MB size cap."
+            },
+            "pages": {
+                "type": "array",
+                "description": "Per-page text in page order; present when Include per-page text is on.",
+                "items": {
+                    "type": "object",
+                    "description": "Text of a single page.",
+                    "properties": {
+                        "page": {
+                            "type": "integer",
+                            "description": "1-based page number."
+                        },
+                        "text": {
+                            "type": "string",
+                            "description": "Plain text of the page."
+                        },
+                        "charCount": {
+                            "type": "integer",
+                            "description": "Number of characters in the page text before any truncation."
+                        }
+                    },
+                    "required": [
+                        "page",
+                        "text",
+                        "charCount"
+                    ]
+                }
+            },
+            "errorType": {
+                "type": "string",
+                "enum": [
+                    "invalid-url",
+                    "not-a-pdf",
+                    "too-large",
+                    "encrypted",
+                    "http-error",
+                    "blocked",
+                    "network",
+                    "timeout",
+                    "parse-error"
+                ],
+                "description": "Failure category, present only when success is false."
+            },
+            "error": {
+                "type": "string",
+                "description": "Human-readable reason the PDF could not be processed, present only when success is false."
+            },
+            "statusCode": {
+                "type": "integer",
+                "description": "HTTP status code returned by the server, present on some failure records."
+            }
+        },
+        "required": [
+            "url",
+            "success",
+            "fetchedAt"
+        ]
+    },
     "views": {
         "overview": {
             "title": "Overview",
@@ -22,64 +233,150 @@
             "display": {
                 "component": "table",
                 "properties": {
-                    "url": { "label": "PDF URL", "format": "link" },
-                    "success": { "label": "OK", "format": "boolean" },
-                    "fileName": { "label": "File name", "format": "text" },
-                    "pageCount": { "label": "Pages", "format": "number" },
-                    "pagesExtracted": { "label": "Pages extracted", "format": "number" },
-                    "wordCount": { "label": "Words", "format": "number" },
-                    "hasText": { "label": "Has text layer", "format": "boolean" },
-                    "fileSizeBytes": { "label": "Size (bytes)", "format": "number" },
-                    "metadata": { "label": "Metadata", "format": "object" },
-                    "errorType": { "label": "Error type", "format": "text" },
-                    "error": { "label": "Error", "format": "text" }
+                    "url": {
+                        "label": "PDF URL",
+                        "format": "link"
+                    },
+                    "success": {
+                        "label": "OK",
+                        "format": "boolean"
+                    },
+                    "fileName": {
+                        "label": "File name",
+                        "format": "text"
+                    },
+                    "pageCount": {
+                        "label": "Pages",
+                        "format": "number"
+                    },
+                    "pagesExtracted": {
+                        "label": "Pages extracted",
+                        "format": "number"
+                    },
+                    "wordCount": {
+                        "label": "Words",
+                        "format": "number"
+                    },
+                    "hasText": {
+                        "label": "Has text layer",
+                        "format": "boolean"
+                    },
+                    "fileSizeBytes": {
+                        "label": "Size (bytes)",
+                        "format": "number"
+                    },
+                    "metadata": {
+                        "label": "Metadata",
+                        "format": "object"
+                    },
+                    "errorType": {
+                        "label": "Error type",
+                        "format": "text"
+                    },
+                    "error": {
+                        "label": "Error",
+                        "format": "text"
+                    }
                 }
             }
         },
         "text": {
             "title": "Text",
             "transformation": {
-                "fields": ["url", "fileName", "wordCount", "text", "markdown", "textTruncated"]
+                "fields": [
+                    "url",
+                    "fileName",
+                    "wordCount",
+                    "text",
+                    "markdown",
+                    "textTruncated"
+                ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "url": { "label": "PDF URL", "format": "link" },
-                    "fileName": { "label": "File name", "format": "text" },
-                    "wordCount": { "label": "Words", "format": "number" },
-                    "text": { "label": "Text", "format": "text" },
-                    "markdown": { "label": "Markdown", "format": "text" },
-                    "textTruncated": { "label": "Truncated", "format": "boolean" }
+                    "url": {
+                        "label": "PDF URL",
+                        "format": "link"
+                    },
+                    "fileName": {
+                        "label": "File name",
+                        "format": "text"
+                    },
+                    "wordCount": {
+                        "label": "Words",
+                        "format": "number"
+                    },
+                    "text": {
+                        "label": "Text",
+                        "format": "text"
+                    },
+                    "markdown": {
+                        "label": "Markdown",
+                        "format": "text"
+                    },
+                    "textTruncated": {
+                        "label": "Truncated",
+                        "format": "boolean"
+                    }
                 }
             }
         },
         "pages": {
             "title": "Pages",
             "transformation": {
-                "fields": ["url", "pages"],
-                "unwind": ["pages"]
+                "fields": [
+                    "url",
+                    "pages"
+                ],
+                "unwind": [
+                    "pages"
+                ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "url": { "label": "PDF URL", "format": "link" },
-                    "pages.page": { "label": "Page", "format": "number" },
-                    "pages.charCount": { "label": "Characters", "format": "number" },
-                    "pages.text": { "label": "Page text", "format": "text" }
+                    "url": {
+                        "label": "PDF URL",
+                        "format": "link"
+                    },
+                    "pages.page": {
+                        "label": "Page",
+                        "format": "number"
+                    },
+                    "pages.charCount": {
+                        "label": "Characters",
+                        "format": "number"
+                    },
+                    "pages.text": {
+                        "label": "Page text",
+                        "format": "text"
+                    }
                 }
             }
         },
         "links": {
             "title": "Links",
             "transformation": {
-                "fields": ["url", "links"],
-                "unwind": ["links"]
+                "fields": [
+                    "url",
+                    "links"
+                ],
+                "unwind": [
+                    "links"
+                ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "url": { "label": "PDF URL", "format": "link" },
-                    "links": { "label": "Link found in PDF", "format": "link" }
+                    "url": {
+                        "label": "PDF URL",
+                        "format": "link"
+                    },
+                    "links": {
+                        "label": "Link found in PDF",
+                        "format": "link"
+                    }
                 }
             }
         }

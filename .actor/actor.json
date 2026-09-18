@@ -3,7 +3,7 @@
     "actorSpecification": 1,
     "name": "pdf-text-extractor",
     "title": "PDF Text & Metadata Extractor",
-    "description": "Download PDFs from URLs and extract the full text, per-page text, document metadata (title, author, dates) and links as clean JSON. Built for RAG and LLM ingestion, research and document archives. Flat price per PDF, failures are free.",
+    "description": "Extract text, per-page text, metadata and links from PDF URLs as JSON or Markdown for RAG, LLM ingestion and archives. Pay per PDF; failed downloads are free.",
     "version": "0.1",
     "buildTag": "latest",
     "meta": {

@@ -1,7 +1,11 @@
 {
     "seoTitle": "PDF Text Extractor API: text, metadata & links from PDF URLs",
     "seoDescription": "Extract full text, per-page text, metadata and links from PDF URLs as JSON for RAG, LLM ingestion and archives. $0.004 per PDF, failed downloads are free.",
-    "categories": ["AI", "DEVELOPER_TOOLS", "AUTOMATION"],
+    "categories": [
+        "AI",
+        "DEVELOPER_TOOLS",
+        "AUTOMATION"
+    ],
     "isPublic": true,
     "actorPermissionLevel": "LIMITED_PERMISSIONS",
     "defaultRunOptions": {
@@ -18,5 +22,6 @@
                 "isPrimaryEvent": true
             }
         }
-    }
+    },
+    "pictureUrl": "https://api.apify.com/v2/key-value-stores/xwGvZbThlWx5vaPgh/records/pdf-text-extractor.png"
 }
