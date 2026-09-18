@@ -1,0 +1,80 @@
+{
+    "$schema": "https://apify.com/schemas/v1/input.ide.json",
+    "title": "PDF Text & Metadata Extractor input",
+    "description": "Paste one or more public PDF URLs. Each successfully extracted PDF is one billable result; URLs that cannot be downloaded or are not PDFs are reported for free.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "urls": {
+            "title": "PDF URLs",
+            "type": "array",
+            "description": "One public PDF URL per line (or a JSON array of URLs). Redirects are followed. Duplicates are removed automatically.",
+            "editor": "stringList",
+            "prefill": [
+                "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                "https://arxiv.org/pdf/1706.03762",
+                "https://bitcoin.org/bitcoin.pdf"
+            ],
+            "uniqueItems": true
+        },
+        "outputFormat": {
+            "title": "Output format",
+            "type": "string",
+            "description": "`text` returns the plain text in the `text` field. `markdown` returns a `markdown` field with headings guessed from font sizes and page breaks rendered as horizontal rules (`---`). `both` returns both fields.",
+            "editor": "select",
+            "enum": ["text", "markdown", "both"],
+            "enumTitles": ["Plain text", "Markdown", "Both"],
+            "default": "text"
+        },
+        "perPage": {
+            "title": "Include per-page text",
+            "type": "boolean",
+            "description": "Add a `pages` array with the text and character count of every page. Turn off to keep records smaller when you only need the full text.",
+            "default": true
+        },
+        "extractLinks": {
+            "title": "Extract links",
+            "type": "boolean",
+            "description": "Collect unique URLs from link annotations and from the text into a `links` array.",
+            "default": true
+        },
+        "maxPages": {
+            "title": "Max pages per PDF",
+            "type": "integer",
+            "description": "Only the first N pages are extracted. `pageCount` always reports the real number of pages.",
+            "default": 500,
+            "minimum": 1,
+            "maximum": 5000,
+            "editor": "number"
+        },
+        "maxFileSizeMb": {
+            "title": "Max file size (MB)",
+            "type": "integer",
+            "description": "PDFs larger than this are skipped (reported as `too-large`, not billed). The limit is enforced from the Content-Length header and again while downloading.",
+            "default": 25,
+            "minimum": 1,
+            "maximum": 200,
+            "editor": "number"
+        },
+        "maxConcurrency": {
+            "title": "Max concurrency",
+            "type": "integer",
+            "description": "How many PDFs to download and parse in parallel. Large PDFs use more memory; lower this if the run hits memory limits.",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 20,
+            "editor": "number",
+            "sectionCaption": "Advanced"
+        },
+        "timeoutSecs": {
+            "title": "Download timeout (seconds)",
+            "type": "integer",
+            "description": "Give up on a PDF download after this many seconds.",
+            "default": 60,
+            "minimum": 5,
+            "maximum": 300,
+            "editor": "number"
+        }
+    },
+    "required": ["urls"]
+}

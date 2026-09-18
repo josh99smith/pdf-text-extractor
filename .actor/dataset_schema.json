@@ -1,0 +1,87 @@
+{
+    "actorSpecification": 1,
+    "fields": {},
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "url",
+                    "success",
+                    "fileName",
+                    "pageCount",
+                    "pagesExtracted",
+                    "wordCount",
+                    "hasText",
+                    "fileSizeBytes",
+                    "metadata",
+                    "errorType",
+                    "error"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "url": { "label": "PDF URL", "format": "link" },
+                    "success": { "label": "OK", "format": "boolean" },
+                    "fileName": { "label": "File name", "format": "text" },
+                    "pageCount": { "label": "Pages", "format": "number" },
+                    "pagesExtracted": { "label": "Pages extracted", "format": "number" },
+                    "wordCount": { "label": "Words", "format": "number" },
+                    "hasText": { "label": "Has text layer", "format": "boolean" },
+                    "fileSizeBytes": { "label": "Size (bytes)", "format": "number" },
+                    "metadata": { "label": "Metadata", "format": "object" },
+                    "errorType": { "label": "Error type", "format": "text" },
+                    "error": { "label": "Error", "format": "text" }
+                }
+            }
+        },
+        "text": {
+            "title": "Text",
+            "transformation": {
+                "fields": ["url", "fileName", "wordCount", "text", "markdown", "textTruncated"]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "url": { "label": "PDF URL", "format": "link" },
+                    "fileName": { "label": "File name", "format": "text" },
+                    "wordCount": { "label": "Words", "format": "number" },
+                    "text": { "label": "Text", "format": "text" },
+                    "markdown": { "label": "Markdown", "format": "text" },
+                    "textTruncated": { "label": "Truncated", "format": "boolean" }
+                }
+            }
+        },
+        "pages": {
+            "title": "Pages",
+            "transformation": {
+                "fields": ["url", "pages"],
+                "unwind": ["pages"]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "url": { "label": "PDF URL", "format": "link" },
+                    "pages.page": { "label": "Page", "format": "number" },
+                    "pages.charCount": { "label": "Characters", "format": "number" },
+                    "pages.text": { "label": "Page text", "format": "text" }
+                }
+            }
+        },
+        "links": {
+            "title": "Links",
+            "transformation": {
+                "fields": ["url", "links"],
+                "unwind": ["links"]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "url": { "label": "PDF URL", "format": "link" },
+                    "links": { "label": "Link found in PDF", "format": "link" }
+                }
+            }
+        }
+    }
+}
