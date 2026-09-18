@@ -1,7 +1,6 @@
 {
     "actorSpecification": 1,
     "fields": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "description": "One record per PDF URL. Successful records carry the extracted text, per-page text, metadata and links; failed records carry an error type and message and are free of charge.",
         "properties": {
