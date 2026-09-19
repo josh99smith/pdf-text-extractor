@@ -222,6 +222,10 @@ Yes, when you provide the user password in the **PDF password** input. Without i
 
 The Actor downloads publicly available files exactly like a browser would, at low request rates. You are responsible for respecting the copyright and terms of use of the documents you process.
 
+### Will the output fields change between runs?
+
+No. Output fields are stable: existing fields are never renamed or removed without a major version bump announced in the changelog, and new fields are only ever added. You can build integrations on the schema without checking it after every run.
+
 ## Related Actors by the same developer
 
 - [Website Screenshot API](https://apify.com/josh99smith/website-screenshot-api): full-page screenshots and PDFs of any URL.
