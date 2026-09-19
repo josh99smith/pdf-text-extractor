@@ -2,6 +2,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api.js';
 
 import { PdfError } from './download.js';
+import { type PageRange, resolvePages } from './pages.js';
 import { pdfjs } from './pdfjs.js';
 
 export interface PdfMetadata {
@@ -29,8 +30,13 @@ export interface PageResult {
 }
 
 export interface ExtractOptions {
+    /** Cap on the total number of pages extracted, applied after `pageRanges`. */
     maxPages: number;
     extractLinks: boolean;
+    /** Parsed `pageRange` input; `null`/undefined means all pages. Numbers past the end of the document are ignored. */
+    pageRanges?: PageRange[] | null;
+    /** User password for encrypted PDFs. */
+    password?: string;
 }
 
 export interface ExtractResult {
@@ -306,8 +312,10 @@ function isTextItem(item: unknown): item is TextItem {
 
 /** Parses PDF bytes with pdf.js and extracts per-page paragraphs, metadata and link annotations. */
 export async function extractPdf(data: Uint8Array, options: ExtractOptions): Promise<ExtractResult> {
+    const password = options.password?.length ? options.password : undefined;
     const task = pdfjs.getDocument({
         data,
+        ...(password !== undefined ? { password } : {}),
         useSystemFonts: false,
         disableFontFace: true,
         verbosity: 0,
@@ -317,9 +325,16 @@ export async function extractPdf(data: Uint8Array, options: ExtractOptions): Pro
     try {
         doc = await task.promise;
     } catch (error) {
-        const err = error as { name?: string; message?: string };
+        const err = error as { name?: string; message?: string; code?: number };
         if (err.name === 'PasswordException') {
-            throw new PdfError('encrypted', 'PDF is password-protected; a user password is required to open it');
+            // pdf.js reports NEED_PASSWORD when none was given and INCORRECT_PASSWORD when the given one failed.
+            const rejected = password !== undefined || err.code === pdfjs.PasswordResponses.INCORRECT_PASSWORD;
+            throw new PdfError(
+                'encrypted',
+                rejected
+                    ? 'PDF is password-protected and the supplied password was rejected'
+                    : 'PDF is password-protected; set the "password" input to open it',
+            );
         }
         if (err.name === 'InvalidPDFException') {
             throw new PdfError('parse-error', `Invalid or corrupted PDF: ${err.message ?? 'unknown error'}`);
@@ -329,7 +344,8 @@ export async function extractPdf(data: Uint8Array, options: ExtractOptions): Pro
 
     try {
         const pageCount = doc.numPages;
-        const pagesExtracted = Math.min(pageCount, Math.max(options.maxPages, 1));
+        const pageNumbers = resolvePages(options.pageRanges ?? null, pageCount, Math.max(options.maxPages, 1));
+        const pagesExtracted = pageNumbers.length;
 
         let metadata: PdfMetadata;
         try {
@@ -340,7 +356,7 @@ export async function extractPdf(data: Uint8Array, options: ExtractOptions): Pro
         }
 
         const pages: PageResult[] = [];
-        for (let pageNumber = 1; pageNumber <= pagesExtracted; pageNumber++) {
+        for (const pageNumber of pageNumbers) {
             const page = await doc.getPage(pageNumber);
             try {
                 const content = await page.getTextContent();
