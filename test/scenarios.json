@@ -1,0 +1,115 @@
+{
+    "happy-path": {
+        "input": {
+            "urls": [
+                "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                "https://arxiv.org/pdf/1706.03762",
+                "https://bitcoin.org/bitcoin.pdf"
+            ]
+        },
+        "expect": {
+            "status": "SUCCEEDED",
+            "minOk": 3,
+            "maxFailed": 0,
+            "maxDurationSecs": 90
+        }
+    },
+    "markdown-both-nolinks": {
+        "input": {
+            "urls": [
+                "https://arxiv.org/pdf/1706.03762"
+            ],
+            "outputFormat": "both",
+            "perPage": false,
+            "extractLinks": false,
+            "maxPages": 3
+        },
+        "expect": {
+            "status": "SUCCEEDED",
+            "minOk": 1,
+            "maxFailed": 0
+        }
+    },
+    "big-form-and-samples": {
+        "input": {
+            "urls": [
+                "https://www.irs.gov/pub/irs-pdf/f1040.pdf",
+                "https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf",
+                "https://www.africau.edu/images/default/sample.pdf"
+            ],
+            "maxPages": 50
+        },
+        "expect": {
+            "status": "SUCCEEDED",
+            "minOk": 2
+        }
+    },
+    "not-pdf-and-errors": {
+        "input": {
+            "urls": [
+                "https://www.w3.org/",
+                "https://httpbin.org/status/404",
+                "https://httpbin.org/status/403",
+                "https://this-domain-does-not-exist-abc123.com/x.pdf",
+                "bad url",
+                "https://httpbin.org/delay/30"
+            ],
+            "timeoutSecs": 10
+        },
+        "expect": {
+            "status": "SUCCEEDED",
+            "maxOk": 0,
+            "errorTypes": [
+                "not-a-pdf",
+                "http-error",
+                "blocked",
+                "network",
+                "dns",
+                "invalid-url",
+                "timeout"
+            ]
+        }
+    },
+    "size-limit": {
+        "input": {
+            "urls": [
+                "https://arxiv.org/pdf/1706.03762"
+            ],
+            "maxFileSizeMb": 1
+        },
+        "expect": {
+            "status": "SUCCEEDED",
+            "maxOk": 0,
+            "errorTypes": [
+                "too-large"
+            ]
+        }
+    },
+    "budget-cap": {
+        "input": {
+            "urls": [
+                "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                "https://bitcoin.org/bitcoin.pdf",
+                "https://arxiv.org/pdf/1706.03762",
+                "https://arxiv.org/pdf/1810.04805",
+                "https://arxiv.org/pdf/2005.14165"
+            ],
+            "maxConcurrency": 1
+        },
+        "maxTotalChargeUsd": 0.009,
+        "expect": {
+            "status": "SUCCEEDED",
+            "maxItems": 3,
+            "stoppedEarlyDueToBudget": true
+        }
+    },
+    "empty-input": {
+        "input": {
+            "urls": []
+        },
+        "expect": {
+            "status": "FAILED",
+            "maxItems": 0
+        }
+    }
+}

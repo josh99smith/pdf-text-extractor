@@ -222,7 +222,7 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
         if (item.hasText) {
             const pushed = await Actor.pushData(ordered, CHARGE_EVENT);
             eventChargeLimitReached = pushed.eventChargeLimitReached;
-            charged += pushed.chargedCount ?? 0;
+            charged += 1;
         } else {
             await Actor.pushData(ordered);
             noTextLayer += 1;
