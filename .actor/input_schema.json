@@ -47,6 +47,33 @@
             "maximum": 5000,
             "editor": "number"
         },
+        "pageRange": {
+            "title": "Page range",
+            "type": "string",
+            "description": "Only extract these pages (1-based), e.g. `1-5, 8, 12-` (`12-` means to the last page). Leave empty for all pages. Page numbers past the end of a document are ignored; **Max pages per PDF** still caps the total.",
+            "editor": "textfield",
+            "default": "",
+            "prefill": "",
+            "pattern": "^[0-9,;\\s-]*$"
+        },
+        "chunkSize": {
+            "title": "Chunk size (characters)",
+            "type": "integer",
+            "description": "When greater than 0, adds a `chunks` array of text pieces of at most this many characters (split on paragraph, line, sentence or word boundaries) ready for embedding in a RAG pipeline. 0 turns chunking off. Typical values: 800-2000. At most 2,000 chunks per PDF.",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 100000,
+            "editor": "number"
+        },
+        "chunkOverlap": {
+            "title": "Chunk overlap (characters)",
+            "type": "integer",
+            "description": "How many characters of the previous chunk are repeated at the start of the next one, so that context is not lost at chunk borders. Must be at most half of **Chunk size**. Only used when chunking is on.",
+            "default": 200,
+            "minimum": 0,
+            "maximum": 50000,
+            "editor": "number"
+        },
         "maxFileSizeMb": {
             "title": "Max file size (MB)",
             "type": "integer",
@@ -65,6 +92,13 @@
             "maximum": 20,
             "editor": "number",
             "sectionCaption": "Advanced"
+        },
+        "password": {
+            "title": "PDF password",
+            "type": "string",
+            "description": "User password for password-protected PDFs. Applied to every URL in the run; files that reject it are reported as `encrypted` (not charged). Stored as a secret.",
+            "editor": "textfield",
+            "isSecret": true
         },
         "timeoutSecs": {
             "title": "Download timeout (seconds)",

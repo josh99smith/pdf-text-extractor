@@ -48,7 +48,9 @@ export function parsePageRange(spec: string | null | undefined): PageRange[] | n
             continue;
         }
         if (!fromText && !toText) {
-            throw new PageRangeError(`Invalid page range "${part}": a dash needs at least one page number, e.g. "12-".`);
+            throw new PageRangeError(
+                `Invalid page range "${part}": a dash needs at least one page number, e.g. "12-".`,
+            );
         }
         const from = fromText ? parsePageNumber(fromText, part) : 1;
         const to = toText ? parsePageNumber(toText, part) : null;

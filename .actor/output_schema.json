@@ -6,7 +6,7 @@
             "type": "string",
             "title": "Extracted PDFs",
             "template": "{{links.apiDefaultDatasetUrl}}",
-            "description": "One record per PDF URL with the full text, per-page text, metadata, links and word count, or a free failure record with an error type."
+            "description": "One record per PDF URL with the full text, per-page text, optional RAG chunks, metadata, links, word and character counts, or a free failure record with an error type."
         },
         "summary": {
             "type": "string",

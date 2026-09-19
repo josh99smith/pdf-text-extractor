@@ -1,11 +1,7 @@
 {
     "seoTitle": "PDF Text Extractor API: text, metadata & links from PDF URLs",
-    "seoDescription": "Extract full text, per-page text, metadata and links from PDF URLs as JSON for RAG, LLM ingestion and archives. $0.004 per PDF, failed downloads are free.",
-    "categories": [
-        "AI",
-        "DEVELOPER_TOOLS",
-        "AUTOMATION"
-    ],
+    "seoDescription": "Extract text, page ranges, RAG chunks, metadata and links from PDF URLs (incl. Drive/Dropbox links) as JSON. $0.004 per PDF, no per-page fee, failures free.",
+    "categories": ["AI", "DEVELOPER_TOOLS", "AUTOMATION"],
     "isPublic": true,
     "actorPermissionLevel": "LIMITED_PERMISSIONS",
     "defaultRunOptions": {
@@ -17,7 +13,7 @@
         "events": {
             "pdf-processed": {
                 "eventTitle": "PDF processed",
-                "eventDescription": "One PDF downloaded and its text, per-page text, metadata and links extracted (up to the configured page limit). Unreachable URLs, non-PDF responses, oversized or password-protected files and scanned PDFs without a text layer are not charged.",
+                "eventDescription": "One PDF downloaded and its text, per-page text, optional RAG chunks, metadata and links extracted (up to the configured page limit or page range). Page ranges, passwords and share-link resolution are included. Unreachable URLs, non-PDF responses, oversized or password-rejected files and scanned PDFs without a text layer are not charged.",
                 "eventPriceUsd": 0.004,
                 "isPrimaryEvent": true
             }

@@ -20,6 +20,7 @@ import {
     renderPageText,
     uniqueLinks,
 } from '../src/extract.js';
+import { parsePageRange } from '../src/pages.js';
 
 const fixture = (name: string) => new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
 
@@ -234,6 +235,61 @@ describe('extractPdf (fixtures, no network)', () => {
                 errorType: 'encrypted',
             },
         );
+    });
+
+    it('opens password-protected PDFs when the right password is supplied', async () => {
+        const result = await extractPdf(fixture('encrypted.pdf'), {
+            maxPages: 500,
+            extractLinks: true,
+            password: 'secret',
+        });
+        expect(result.pageCount).toBeGreaterThan(0);
+        expect(result.metadata.encrypted).toBe(true);
+        expect(renderPageText(result.pages[0]).length).toBeGreaterThan(0);
+    });
+
+    it('fails with "encrypted" and a "password rejected" message for a wrong password', async () => {
+        await expect(
+            extractPdf(fixture('encrypted.pdf'), { maxPages: 500, extractLinks: true, password: 'wrong' }),
+        ).rejects.toMatchObject({ errorType: 'encrypted', message: expect.stringMatching(/password was rejected/) });
+    });
+
+    it('ignores an empty password and reports how to open the file', async () => {
+        await expect(
+            extractPdf(fixture('encrypted.pdf'), { maxPages: 500, extractLinks: true, password: '' }),
+        ).rejects.toMatchObject({ errorType: 'encrypted', message: expect.stringMatching(/set the "password" input/) });
+    });
+
+    it('extracts only the pages selected by pageRanges and reports their real page numbers', async () => {
+        const result = await extractPdf(fixture('three-pages.pdf'), {
+            maxPages: 500,
+            extractLinks: false,
+            pageRanges: parsePageRange('3, 1, 10-'),
+        });
+        expect(result.pageCount).toBe(3);
+        expect(result.pagesExtracted).toBe(2);
+        expect(result.pages.map((p) => p.page)).toEqual([1, 3]);
+        expect(renderPageText(result.pages[1])).toBe('Chapter Three\n\nThird and final page.');
+    });
+
+    it('returns no pages when the range lies past the end of the document', async () => {
+        const result = await extractPdf(fixture('three-pages.pdf'), {
+            maxPages: 500,
+            extractLinks: false,
+            pageRanges: parsePageRange('5-'),
+        });
+        expect(result.pageCount).toBe(3);
+        expect(result.pagesExtracted).toBe(0);
+        expect(result.pages).toEqual([]);
+    });
+
+    it('applies maxPages on top of pageRanges', async () => {
+        const result = await extractPdf(fixture('three-pages.pdf'), {
+            maxPages: 1,
+            extractLinks: false,
+            pageRanges: parsePageRange('2-'),
+        });
+        expect(result.pages.map((p) => p.page)).toEqual([2]);
     });
 
     it('opens owner-password-only PDFs and flags them as encrypted', async () => {

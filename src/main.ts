@@ -2,6 +2,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 
 import { Actor, log } from 'apify';
 
+import { type Chunk, chunkPages, DEFAULT_MAX_CHUNKS, MIN_CHUNK_SIZE, normalizeChunkOptions } from './chunk.js';
 import { downloadPdf, type FailureType, normalizeUrl, PdfError } from './download.js';
 import {
     capText,
@@ -14,6 +15,8 @@ import {
     renderPageText,
     uniqueLinks,
 } from './extract.js';
+import { resolveShareLink } from './links.js';
+import { formatPageRange, type PageRange, PageRangeError, parsePageRange } from './pages.js';
 
 const CHARGE_EVENT = 'pdf-processed';
 const MAX_TEXT_BYTES = 2 * 1024 * 1024;
@@ -25,11 +28,17 @@ interface Input {
     outputFormat?: OutputFormat;
     perPage?: boolean;
     maxPages?: number;
+    pageRange?: string;
+    chunkSize?: number;
+    chunkOverlap?: number;
     maxFileSizeMb?: number;
     extractLinks?: boolean;
+    password?: string;
     maxConcurrency?: number;
     timeoutSecs?: number;
 }
+
+type ResultStatus = 'ok' | 'no-text-layer' | 'no-pages-in-range';
 
 interface PageOutput {
     page: number;
@@ -39,8 +48,10 @@ interface PageOutput {
 
 interface SuccessItem {
     url: string;
+    resolvedUrl?: string;
     finalUrl: string;
     success: true;
+    status: ResultStatus;
     fileName: string;
     fileSizeBytes: number;
     pageCount: number;
@@ -50,8 +61,10 @@ interface SuccessItem {
     markdown?: string;
     textTruncated: boolean;
     pages?: PageOutput[];
+    chunks?: Chunk[];
     links: string[];
     wordCount: number;
+    charCount: number;
     hasText: boolean;
     pagesWithText: number;
     fetchedAt: string;
@@ -59,6 +72,7 @@ interface SuccessItem {
 
 interface FailureItem {
     url: string;
+    resolvedUrl?: string;
     success: false;
     errorType: FailureType;
     error: string;
@@ -90,14 +104,46 @@ const maxFileSizeMb = clampInt(input.maxFileSizeMb, 25, 1, 200);
 const extractLinks = input.extractLinks ?? true;
 const maxConcurrency = clampInt(input.maxConcurrency, 5, 1, 20);
 const timeoutSecs = clampInt(input.timeoutSecs, 60, 5, 300);
+const password = typeof input.password === 'string' && input.password.length > 0 ? input.password : undefined;
+
+let pageRanges: PageRange[] | null = null;
+try {
+    pageRanges = parsePageRange(typeof input.pageRange === 'string' ? input.pageRange : '');
+} catch (error) {
+    if (error instanceof PageRangeError) await Actor.fail(`Input "pageRange": ${error.message}`);
+    throw error;
+}
+
+const chunkSizeInput = clampInt(input.chunkSize, 0, 0, 100_000);
+const chunking = chunkSizeInput > 0;
+const chunkOptions = normalizeChunkOptions({
+    chunkSize: chunkSizeInput,
+    chunkOverlap: clampInt(input.chunkOverlap, 200, 0, 100_000),
+    maxChunks: DEFAULT_MAX_CHUNKS,
+});
+if (chunking && chunkSizeInput < MIN_CHUNK_SIZE) {
+    log.warning(`Input "chunkSize" ${chunkSizeInput} is too small; using ${MIN_CHUNK_SIZE}.`);
+}
+if (chunking && (input.chunkOverlap ?? 200) > chunkOptions.chunkOverlap) {
+    log.warning(`Input "chunkOverlap" must be at most half of "chunkSize"; using ${chunkOptions.chunkOverlap}.`);
+}
 
 const rawUrls = (input.urls ?? []).map((u) => (typeof u === 'string' ? u : (u?.url ?? '')));
 if (rawUrls.length === 0) {
     await Actor.fail('Input "urls" is empty. Provide at least one PDF URL, e.g. ["https://bitcoin.org/bitcoin.pdf"].');
 }
 
+interface Job {
+    /** Normalised URL; used for de-duplication. */
+    url: string;
+    /** URL exactly as supplied; echoed in the output. */
+    originalUrl: string;
+    /** Direct-download URL after share-link rewriting; equals `url` when no rewrite applied. */
+    fetchUrl: string;
+}
+
 const seen = new Set<string>();
-const jobs: { url: string; originalUrl: string }[] = [];
+const jobs: Job[] = [];
 const failures: FailureItem[] = [];
 for (const raw of rawUrls) {
     const normalized = normalizeUrl(raw);
@@ -113,12 +159,17 @@ for (const raw of rawUrls) {
     }
     if (seen.has(normalized)) continue;
     seen.add(normalized);
-    jobs.push({ url: normalized, originalUrl: raw });
+    const resolved = resolveShareLink(normalized);
+    if (resolved.provider) log.debug(`Rewrote ${resolved.provider} share link ${normalized} -> ${resolved.url}`);
+    jobs.push({ url: normalized, originalUrl: raw, fetchUrl: resolved.url });
 }
 if (failures.length) await Actor.pushData(failures); // free of charge
 
+const chunkSummary = chunking
+    ? `, chunks of ${chunkOptions.chunkSize} chars with ${chunkOptions.chunkOverlap} overlap`
+    : '';
 log.info(
-    `Processing ${jobs.length} PDF URL(s) with concurrency ${maxConcurrency} (max ${maxPages} pages, max ${maxFileSizeMb} MB, format "${outputFormat}").`,
+    `Processing ${jobs.length} PDF URL(s) with concurrency ${maxConcurrency} (pages ${formatPageRange(pageRanges)}, max ${maxPages} pages, max ${maxFileSizeMb} MB, format "${outputFormat}"${chunkSummary}${password ? ', password set' : ''}).`,
 );
 
 const chargingManager = Actor.getChargingManager();
@@ -126,27 +177,34 @@ const { isPayPerEvent } = chargingManager.getPricingInfo();
 let processed = 0;
 let charged = 0;
 let noTextLayer = 0;
+let noPagesInRange = 0;
 let failed = 0;
 let stopBecauseOfBudget = false;
 
-async function processUrl(job: { url: string; originalUrl: string }): Promise<void> {
+async function processUrl(job: Job): Promise<void> {
     const started = Date.now();
+    const resolvedUrl = job.fetchUrl !== job.url ? { resolvedUrl: job.fetchUrl } : {};
     try {
-        const file = await downloadPdf(job.url, {
+        const file = await downloadPdf(job.fetchUrl, {
             maxBytes: maxFileSizeMb * 1024 * 1024,
             timeoutMs: timeoutSecs * 1000,
         });
-        const result = await extractPdf(file.data, { maxPages, extractLinks });
+        const result = await extractPdf(file.data, { maxPages, extractLinks, pageRanges, password });
 
         const pageTexts = result.pages.map((p) => renderPageText(p));
         const plainText = pageTexts.join(PAGE_BREAK_TEXT).trim();
         const wordCount = countWords(plainText);
         const pagesWithText = pageTexts.filter((t) => /\S/.test(t)).length;
+        let status: ResultStatus = 'ok';
+        if (result.pagesExtracted === 0 && result.pageCount > 0) status = 'no-pages-in-range';
+        else if (pagesWithText === 0) status = 'no-text-layer';
 
         const item: SuccessItem = {
             url: job.originalUrl,
+            ...resolvedUrl,
             finalUrl: file.finalUrl,
             success: true,
+            status,
             fileName: file.fileName,
             fileSizeBytes: file.fileSizeBytes,
             pageCount: result.pageCount,
@@ -155,6 +213,7 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
             textTruncated: false,
             links: extractLinks ? uniqueLinks(result.pages.map((p) => p.links)) : [],
             wordCount,
+            charCount: plainText.length,
             hasText: pagesWithText > 0,
             pagesWithText,
             fetchedAt: new Date().toISOString(),
@@ -179,28 +238,38 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
             let budget = MAX_TEXT_BYTES;
             item.pages = [];
             for (const [index, text] of pageTexts.entries()) {
+                const pageNumber = result.pages[index].page;
                 const bytes = Buffer.byteLength(text, 'utf8');
                 if (bytes > budget) {
                     const capped = capText(text, Math.max(budget, 0));
-                    item.pages.push({ page: index + 1, text: capped.text, charCount: text.length });
+                    item.pages.push({ page: pageNumber, text: capped.text, charCount: text.length });
                     item.textTruncated = true;
                     break;
                 }
                 budget -= bytes;
-                item.pages.push({ page: index + 1, text, charCount: text.length });
+                item.pages.push({ page: pageNumber, text, charCount: text.length });
             }
+        }
+        if (chunking) {
+            item.chunks = chunkPages(
+                result.pages.map((p, index) => ({ page: p.page, text: pageTexts[index] })),
+                chunkOptions,
+            );
         }
 
         // Reorder keys so the record reads naturally in the dataset viewer.
         const ordered: SuccessItem = {
             url: item.url,
+            ...resolvedUrl,
             finalUrl: item.finalUrl,
             success: true,
+            status: item.status,
             fileName: item.fileName,
             fileSizeBytes: item.fileSizeBytes,
             pageCount: item.pageCount,
             pagesExtracted: item.pagesExtracted,
             wordCount: item.wordCount,
+            charCount: item.charCount,
             hasText: item.hasText,
             pagesWithText: item.pagesWithText,
             metadata: item.metadata,
@@ -209,6 +278,7 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
             ...(item.markdown !== undefined ? { markdown: item.markdown } : {}),
             textTruncated: item.textTruncated,
             ...(item.pages ? { pages: item.pages } : {}),
+            ...(item.chunks ? { chunks: item.chunks } : {}),
             fetchedAt: item.fetchedAt,
         };
 
@@ -225,12 +295,16 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
             charged += 1;
         } else {
             await Actor.pushData(ordered);
-            noTextLayer += 1;
+            if (status === 'no-pages-in-range') noPagesInRange += 1;
+            else noTextLayer += 1;
         }
         processed += 1;
-        const scannedHint = item.hasText ? '' : ' (no text layer, likely scanned images; not charged)';
+        let hint = '';
+        if (status === 'no-pages-in-range') hint = ' (page range selects no pages of this document; not charged)';
+        else if (status === 'no-text-layer') hint = ' (no text layer, likely scanned images; not charged)';
+        const chunkHint = item.chunks ? `, ${item.chunks.length} chunk(s)` : '';
         log.info(
-            `${file.finalUrl}: ${result.pageCount} page(s), ${wordCount} words, ${item.links.length} link(s), ${(file.fileSizeBytes / 1024).toFixed(0)} KB in ${Date.now() - started} ms${scannedHint}`,
+            `${file.finalUrl}: ${result.pagesExtracted}/${result.pageCount} page(s), ${wordCount} words, ${item.links.length} link(s)${chunkHint}, ${(file.fileSizeBytes / 1024).toFixed(0)} KB in ${Date.now() - started} ms${hint}`,
         );
         if (eventChargeLimitReached) {
             stopBecauseOfBudget = true;
@@ -244,13 +318,14 @@ async function processUrl(job: { url: string; originalUrl: string }): Promise<vo
             error instanceof PdfError ? error : new PdfError('parse-error', (error as Error).message ?? String(error));
         const item: FailureItem = {
             url: job.originalUrl,
+            ...resolvedUrl,
             success: false,
             errorType: err.errorType,
             error: err.message.slice(0, 500),
             ...(err.statusCode !== undefined ? { statusCode: err.statusCode } : {}),
             fetchedAt: new Date().toISOString(),
         };
-        log.warning(`${job.url}: ${item.errorType} - ${item.error}`);
+        log.warning(`${job.fetchUrl}: ${item.errorType} - ${item.error}`);
         await Actor.pushData(item); // free of charge: users only pay for extracted PDFs
     }
 }
@@ -268,8 +343,9 @@ await Promise.all(Array.from({ length: Math.min(maxConcurrency, jobs.length) }, 
 const summary = {
     requested: rawUrls.length,
     processed,
-    charged: isPayPerEvent ? charged : processed - noTextLayer,
+    charged: isPayPerEvent ? charged : processed - noTextLayer - noPagesInRange,
     noTextLayer,
+    noPagesInRange,
     failures: failed + failures.length,
     skipped: jobs.length - processed - failed,
     stoppedEarlyDueToBudget: stopBecauseOfBudget,
