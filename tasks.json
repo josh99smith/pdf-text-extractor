@@ -1,0 +1,60 @@
+[
+    {
+        "name": "extract-text-from-research-paper-pdf",
+        "title": "Extract text from a research paper PDF",
+        "seoTitle": "Extract text from research paper PDFs (arXiv example)",
+        "seoDescription": "Turn arXiv or journal PDFs into clean text with per-page text, metadata and reference links, ready for summarisation or search indexing.",
+        "description": "Turn research papers from arXiv or journals into clean text with per-page breakdown, document metadata and the links found in the paper. Feeds summarisation, citation extraction and search indexing.",
+        "input": {
+            "urls": [
+                "https://arxiv.org/pdf/1706.03762",
+                "https://arxiv.org/pdf/1810.04805"
+            ],
+            "outputFormat": "text",
+            "perPage": true
+        }
+    },
+    {
+        "name": "pdf-to-markdown-for-llm-ingestion",
+        "title": "PDF to Markdown for LLM ingestion",
+        "seoTitle": "Convert PDF to Markdown for LLM and RAG pipelines",
+        "seoDescription": "Convert PDFs to Markdown with headings and paragraphs preserved, plus overlapping text chunks sized for embeddings, in one flat-priced call per PDF.",
+        "description": "Convert PDFs to Markdown with headings and paragraph structure preserved, and split the text into overlapping chunks sized for embedding models. Feed the chunks straight into LangChain, LlamaIndex or a vector database.",
+        "input": {
+            "urls": [
+                "https://bitcoin.org/bitcoin.pdf"
+            ],
+            "outputFormat": "markdown",
+            "chunkSize": 1500,
+            "chunkOverlap": 200
+        }
+    },
+    {
+        "name": "extract-specific-pages-from-a-pdf",
+        "title": "Extract specific pages from a PDF",
+        "seoTitle": "Extract text from specific PDF pages (page ranges)",
+        "seoDescription": "Pull text from selected pages only, for example 1-3 and 10, so long reports and filings are processed quickly and cheaply.",
+        "description": "Extract text from selected pages only, using a page range such as 1-3, 10, 15-, so long reports, filings and manuals are processed quickly. The whole document still costs one flat per-PDF price.",
+        "input": {
+            "urls": [
+                "https://arxiv.org/pdf/1706.03762"
+            ],
+            "pageRange": "1-3, 10",
+            "perPage": true
+        }
+    },
+    {
+        "name": "extract-text-from-google-drive-pdf-link",
+        "title": "Extract text from a Google Drive PDF link",
+        "seoTitle": "Extract text from Google Drive and Dropbox PDF links",
+        "seoDescription": "Paste Google Drive, Dropbox, OneDrive or GitHub share links; they are resolved to direct downloads automatically before the text is extracted.",
+        "description": "Paste PDF share links from Google Drive, Dropbox, OneDrive or GitHub and they are resolved to direct downloads before extraction, so shared documents work without manual link editing.",
+        "input": {
+            "urls": [
+                "https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf",
+                "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            ],
+            "outputFormat": "text"
+        }
+    }
+]
