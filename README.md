@@ -1,3 +1,5 @@
+![pdf-text-extractor banner](https://raw.githubusercontent.com/josh99smith/apify-actor-assets/main/banners/pdf-text-extractor.png)
+
 **PDF text extractor** and PDF to text API: give it public PDF URLs and it downloads each file and returns the full text, the text of every page, ready-made **chunks for RAG**, document metadata (title, author, dates, producer) and every link in the document as JSON you can search, index or feed to an LLM.
 
 It is built for **RAG and LLM ingestion pipelines**, research and archiving: no servers, no PDF library to maintain, one flat price per PDF, and files that cannot be processed are reported **free of charge**.
@@ -70,6 +72,8 @@ The file must be shared with "anyone with the link"; private or expired shares a
 With `chunkSize` above 0 (characters; 800-2000 is typical) every record gets `chunks[]` of `{ index, page, text, charCount }`. The splitter cuts at paragraph breaks where possible, then line breaks, sentence ends and spaces, and repeats the last `chunkOverlap` characters (default 200, at most half the chunk size) at the start of the next chunk so context survives the cut. `page` is where the chunk starts, so you can cite it. At most 2,000 chunks per PDF.
 
 ## Output
+
+![Sample output of pdf-text-extractor](https://raw.githubusercontent.com/josh99smith/apify-actor-assets/main/previews/pdf-text-extractor.png)
 
 One record per PDF (text trimmed):
 
