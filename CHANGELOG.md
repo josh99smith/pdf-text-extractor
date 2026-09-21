@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2026-09-20)
+
+- Duplicate input URLs are now deduplicated by the Actor instead of being rejected by input validation, as the field description already promised.
+
 ## 0.2.0 (2026-09-18)
 
 - `pageRange` input (`1-5, 8, 12-`) to extract only selected pages; invalid syntax fails the run with a clear message, out-of-range pages are ignored and `maxPages` still caps the total.

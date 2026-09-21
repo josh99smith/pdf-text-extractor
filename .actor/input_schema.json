@@ -14,8 +14,7 @@
                 "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
                 "https://arxiv.org/pdf/1706.03762",
                 "https://bitcoin.org/bitcoin.pdf"
-            ],
-            "uniqueItems": true
+            ]
         },
         "outputFormat": {
             "title": "Output format",
