@@ -192,7 +192,24 @@ const { items } = await client.dataset(run.defaultDatasetId).listItems();
 console.log(items[0].chunks.length, 'chunks');
 ```
 
-The Actor is also a tool in the Apify MCP server for AI agents, and can be scheduled or connected to Zapier, Make and n8n in the **Integrations** tab.
+### Use it from Claude, Cursor, ChatGPT or any MCP client
+
+The Actor is exposed as a tool by the [Apify MCP server](https://mcp.apify.com), so an AI agent can call it by name. Add this to your MCP client configuration (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf and others):
+
+```json
+{
+    "mcpServers": {
+        "apify": {
+            "url": "https://mcp.apify.com?tools=josh99smith/pdf-text-extractor",
+            "headers": { "Authorization": "Bearer <YOUR_API_TOKEN>" }
+        }
+    }
+}
+```
+
+Then ask, for example: *"Extract the text of https://arxiv.org/pdf/1706.03762 with josh99smith/pdf-text-extractor and summarise section 3."* The agent fills in the input, runs the Actor and reads the dataset back; you pay the same per-result price as in the Console.
+
+The Actor can also be scheduled, or connected to Zapier, Make, n8n and Google Sheets in the **Integrations** tab.
 
 ## Pricing: how much does it cost to extract text from PDFs?
 
@@ -241,3 +258,5 @@ No. Output fields are stable: existing fields are never renamed or removed witho
 ## Support and feedback
 
 Found a PDF that extracts badly, or need OCR or table extraction? Open a ticket in the **Issues** tab. The source is MIT licensed; parsing is powered by [pdf.js](https://github.com/mozilla/pdf.js) (Apache-2.0).
+
+The full source code is on GitHub: [josh99smith/pdf-text-extractor](https://github.com/josh99smith/pdf-text-extractor). Stars and pull requests are welcome.
