@@ -14,7 +14,7 @@ It is built for **RAG and LLM ingestion pipelines**, research and archiving: no 
 - Per-page text, word and character counts, metadata and links
 - Scanned PDFs without a text layer are detected and never charged
 
-## What can you do with PDF Text & Metadata Extractor?
+## What can you do with Best Damn PDF Text Extractor?
 
 - **Feed RAG and vector databases**: extract and chunk papers, manuals and reports, then embed the chunks directly.
 - **Research and literature review**: pull text and metadata from hundreds of arXiv, journal or government PDFs in one run.
@@ -249,11 +249,11 @@ No. Output fields are stable: existing fields are never renamed or removed witho
 
 ## Related Actors by the same developer
 
-- [Website Screenshot API](https://apify.com/josh99smith/website-screenshot-api): full-page screenshots and PDFs of any URL.
-- [Sitemap URL Extractor](https://apify.com/josh99smith/sitemap-url-extractor): all URLs from XML sitemaps.
-- [RSS and Atom Feed to JSON](https://apify.com/josh99smith/rss-feed-to-json): feeds as JSON items.
-- [Website Tech Stack Detector](https://apify.com/josh99smith/tech-stack-detector): what a website is built with.
-- [Remote Jobs Aggregator API](https://apify.com/josh99smith/remote-jobs-aggregator): remote job listings in one dataset.
+- [Best Damn Website Screenshot API](https://apify.com/josh99smith/website-screenshot-api): full-page screenshots and PDFs of any URL.
+- [Best Damn Sitemap URL Extractor](https://apify.com/josh99smith/sitemap-url-extractor): all URLs from XML sitemaps.
+- [Best Damn RSS to JSON Converter](https://apify.com/josh99smith/rss-feed-to-json): feeds as JSON items.
+- [Best Damn Tech Stack Detector](https://apify.com/josh99smith/tech-stack-detector): what a website is built with.
+- [Best Damn Remote Jobs Aggregator](https://apify.com/josh99smith/remote-jobs-aggregator): remote job listings in one dataset.
 
 ## Support and feedback
 

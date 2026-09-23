@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (2026-09-23)
+
+- Listing: joined the Best Damn series. New title "Best Damn PDF Text Extractor", new description, icon and README banner. No change to inputs, output or pricing.
+
 ## 0.2.1 (2026-09-20)
 
 - Duplicate input URLs are now deduplicated by the Actor instead of being rejected by input validation, as the field description already promised.

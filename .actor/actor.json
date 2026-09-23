@@ -2,8 +2,8 @@
     "$schema": "https://apify.com/schemas/v1/actor.ide.json",
     "actorSpecification": 1,
     "name": "pdf-text-extractor",
-    "title": "PDF Text & Metadata Extractor",
-    "description": "Extract text, per-page text, metadata and links from PDF URLs as JSON or Markdown for RAG, LLM ingestion and archives. Pay per PDF; failed downloads are free.",
+    "title": "Best Damn PDF Text Extractor",
+    "description": "Extract text, per-page text, metadata and links from any PDF URL as JSON or Markdown, ready for RAG and LLM ingestion. Works with Google Drive and Dropbox links. One flat price per PDF, no per-page fees, failed downloads free.",
     "version": "0.1",
     "buildTag": "latest",
     "meta": {
