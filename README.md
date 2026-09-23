@@ -270,6 +270,7 @@ You can also attach [webhooks](https://docs.apify.com/platform/integrations/webh
 - [Best Damn Tech Stack Detector](https://apify.com/josh99smith/tech-stack-detector): what a website is built with.
 - [Best Damn Remote Jobs Aggregator](https://apify.com/josh99smith/remote-jobs-aggregator): remote job listings in one dataset.
 - [Best Damn YouTube Comments Scraper](https://apify.com/josh99smith/youtube-comments-scraper): comments and replies from YouTube videos and channels.
+- [Best Damn YouTube Scraper](https://apify.com/josh99smith/youtube-scraper): videos, channels, playlists and search results with statistics.
 
 ## Support and feedback
 
