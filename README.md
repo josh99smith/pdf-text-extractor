@@ -247,6 +247,21 @@ The Actor downloads publicly available files exactly like a browser would, at lo
 
 No. Output fields are stable: existing fields are never renamed or removed without a major version bump announced in the changelog, and new fields are only ever added. You can build integrations on the schema without checking it after every run.
 
+## Integrate Best Damn PDF Text Extractor and automate your workflow
+
+Best Damn PDF Text Extractor plugs into the tools you already use through [Apify integrations](https://docs.apify.com/platform/integrations), so results can flow on without anyone downloading a file. Ready-made connectors include:
+
+- [Make](https://docs.apify.com/platform/integrations/make)
+- [Zapier](https://docs.apify.com/platform/integrations/zapier)
+- [n8n](https://docs.apify.com/platform/integrations/n8n)
+- [Slack](https://docs.apify.com/platform/integrations/slack)
+- [Airbyte](https://docs.apify.com/platform/integrations/airbyte)
+- [GitHub](https://docs.apify.com/platform/integrations/github)
+- [Google Drive](https://docs.apify.com/platform/integrations/drive)
+- and [many more](https://docs.apify.com/platform/integrations).
+
+You can also attach [webhooks](https://docs.apify.com/platform/integrations/webhooks) to trigger your own endpoint whenever a run succeeds, fails or times out. For example, send extracted text straight into your vector database or RAG pipeline, or archive it in Google Drive.
+
 ## Related Actors by the same developer
 
 - [Best Damn Website Screenshot API](https://apify.com/josh99smith/website-screenshot-api): full-page screenshots and PDFs of any URL.

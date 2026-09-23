@@ -3,6 +3,7 @@
 ## 0.2.2 (2026-09-23)
 
 - Listing: joined the Best Damn series. New title "Best Damn PDF Text Extractor", new description, icon and README banner. No change to inputs, output or pricing.
+- README: new "Integrate and automate your workflow" section (Make, Zapier, n8n, Slack, Airbyte, GitHub, Google Drive, webhooks).
 
 ## 0.2.1 (2026-09-20)
 
