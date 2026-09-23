@@ -1,6 +1,6 @@
 {
     "$schema": "https://apify.com/schemas/v1/input.ide.json",
-    "title": "PDF Text & Metadata Extractor input",
+    "title": "Best Damn PDF Text Extractor input",
     "description": "Paste one or more public PDF URLs. Each successfully extracted PDF is one billable result; URLs that cannot be downloaded or are not PDFs are reported for free.",
     "type": "object",
     "schemaVersion": 1,

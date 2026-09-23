@@ -1,4 +1,4 @@
-![pdf-text-extractor banner](https://raw.githubusercontent.com/josh99smith/apify-actor-assets/main/banners/pdf-text-extractor.png)
+![pdf-text-extractor banner](https://raw.githubusercontent.com/josh99smith/apify-actor-assets/main/banners/pdf-text-extractor.png?v=bd1)
 
 **PDF text extractor** and PDF to text API: give it public PDF URLs and it downloads each file and returns the full text, the text of every page, ready-made **chunks for RAG**, document metadata (title, author, dates, producer) and every link in the document as JSON you can search, index or feed to an LLM.
 
@@ -269,6 +269,7 @@ You can also attach [webhooks](https://docs.apify.com/platform/integrations/webh
 - [Best Damn RSS to JSON Converter](https://apify.com/josh99smith/rss-feed-to-json): feeds as JSON items.
 - [Best Damn Tech Stack Detector](https://apify.com/josh99smith/tech-stack-detector): what a website is built with.
 - [Best Damn Remote Jobs Aggregator](https://apify.com/josh99smith/remote-jobs-aggregator): remote job listings in one dataset.
+- [Best Damn YouTube Comments Scraper](https://apify.com/josh99smith/youtube-comments-scraper): comments and replies from YouTube videos and channels.
 
 ## Support and feedback
 

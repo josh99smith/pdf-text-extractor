@@ -1,6 +1,6 @@
 {
     "actorOutputSchemaVersion": 1,
-    "title": "PDF Text & Metadata Extractor output",
+    "title": "Best Damn PDF Text Extractor output",
     "properties": {
         "results": {
             "type": "string",
