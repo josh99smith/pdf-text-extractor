@@ -274,6 +274,6 @@ You can also attach [webhooks](https://docs.apify.com/platform/integrations/webh
 
 ## Support and feedback
 
-Found a PDF that extracts badly, or need OCR or table extraction? Open a ticket in the **Issues** tab. The source is MIT licensed; parsing is powered by [pdf.js](https://github.com/mozilla/pdf.js) (Apache-2.0).
+Found a PDF that extracts badly, or need OCR or table extraction? Open a ticket in the **Issues** tab. The source is MIT licensed; parsing is powered by [pdf.js](https://github.com/mozilla/pdf.js) (Apache-2.0). If this Actor saved you time, a review on its Store page helps other people find it.
 
 The full source code is on GitHub: [josh99smith/pdf-text-extractor](https://github.com/josh99smith/pdf-text-extractor). Stars and pull requests are welcome.
